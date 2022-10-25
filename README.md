@@ -12,7 +12,7 @@ The hypothetical data contains a continuous outcome variable, 24HAC formed by fo
 
 The ISM is formulated by including the total activity and all but one of the activity variables – the activity you will explore displacing – in the model.  For example, with a continuous health outcome an ISM that leaves out the time stepping can be formulated, as below:
 
-`E(Y) = \beta_0 + \beta_1Sit + \beta_2 Stand + \beta_3 Step + \beta_4 Ttoal + \gamma Sex`
+$$E(Y) = \beta_0 + \beta_1Sit + \beta_2 Stand + \beta_3 Step + \beta_4 Ttoal + \gamma Sex$$
 
 where `E(Y)` abbreviates the conditional mean of the health outcome given the time allocation variables (Sit, Stand, Sleep, Total measured on the same unit, e.g., hours in a 24-hour day), and the covariate sex. When *Total* is exactly a constant 24 hours/day for every subject, like in this hypothetical example, only one of the intercept or the Total terms can be included in the model.
 
