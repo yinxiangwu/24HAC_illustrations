@@ -10,9 +10,10 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,include = F
 ```{r}
 library(tableone)
 library(dplyr)
-library(kableExtra)
 library(ggtern)
 library(robCompositions)
+library(mgcv)
+library(kableExtra)
 ```
 
 ```{r}
@@ -38,6 +39,8 @@ kable(tbl1)
 ```
 
 ## ISM approach
+
+### Linear ISM
 
 Consider an example where each minute of the 24-hour day is classified into one of four activities: sleeping, sitting, standing, and stepping. The ISM is formulated by including the total activity and all but one of the activity variables – the activity you will explore displacing – in the model.  For example, with a continuous health outcome an ISM that leaves out the time stepping can be formulated, as below:
 
@@ -72,20 +75,17 @@ rownames(iso_tab) <- c('Sit (hours)','Stand (hours)','Step (hours)','Sleep (hour
 colnames(iso_tab) <- rep(c('Beta (95\\% C.I.)','p-value'),4)
 kable(iso_tab, format = 'latex',caption = 'Isotemporal Substitution of Activities, per 10-Minute/Day Increase',escape = FALSE,booktabs = TRUE) %>% 
   add_header_above(c(' ' = 1,'Model with sit dropped' = 2, 'Model with stand dropped' = 2, 'Model with step dropped'=2, 'Model with sleep dropped' = 2),bold = TRUE) %>%
-  kable_styling(latex_options = c('hold_position','scale_down','striped')) %>%
-  footnote(general = 'AIC = 2134, BIC = 2168')
+  kable_styling(latex_options = c('hold_position','scale_down','striped'))
 #write.csv(t(iso_tab),'MS tables figures/ISM_table.csv')
 ```
 
-Nonlinear ISM
+### Nonlinear ISM
 
 A more flexible ISM could be fit with each activity term modeled by a spline function, while keeping the total activity as a linear term. The flexible ISM still enjoys the interpretation of substitution effects but avoids making the linear assumption. The optimal trade-off between smoothness and goodness of fit can be determined by either performing cross validation or minimizing the generalized cross validation (GCV) criteria. The significance of the association for each behavior in the nonlinear ISM model can be tested via a Wald like test [Wood SN 2006]. The nonlinear ISM analysis can be done in R with package “mgcv”.
 
-```{r}
-library(mgcv)
-
+```{r, echo = TRUE, include = FALSE}
 m_iso_nl <- gam(outcome ~ s(sit_hrs,bs = 'bs',k = 5) + s(stand_hrs,bs = 'bs',k = 5) + s(sleep_hrs,bs = 'bs', k = 5) + sex, data = dat)
-
+# Total is the same for every subject and hence not included
 summary(m_iso_nl)
 plot(m_iso_nl)
 ```
@@ -158,7 +158,7 @@ grid.arrange(g1,g2,g3,g4, ncol = 2,layout_matrix = matrix(c(1,1,1,2,3,4),nrow = 
 ```
 
 
-### Table 2. Comparisons of compositional means
+### Comparisons of compositional means by groups
 
 ```{r, include=TRUE}
 coda_mean <- function(x) {
@@ -206,11 +206,11 @@ comp_subgroup_mean <- function(data, group, coda_var, includeNA = FALSE){
  
   return(tmp.tbl)
 }
-tab_sex <- comp_subgroup_mean(dat,'sex', c('sit','stand','step','sleep'))
+tbl_sex <- comp_subgroup_mean(dat,'sex', c('sit','stand','step','sleep'))
 
 
 kable(tbl_sex,row.names = FALSE,format = 'latex',col.names = c('Stratification','N (\\%)','Sit','Stand','Step','Sleep','P-value'),booktabs = TRUE, caption = 'Compositional mean in subgroups',escape = FALSE) %>% 
-    add_indent((1:nrow(tbl2))[!(tbl2[,1] %in% c('Gender','Age','Race/Ethnicity','sPPF','Half mile','Sleep duration/day','Sleep quality','CASI categorical'))]) %>% 
+    add_indent(2:3) %>% 
     #column_spec(1, width = "23em") %>% 
     kable_styling(latex_options = c('scale_down','HOLD_position','striped')) %>%
     footnote(general = 'p-value from multivariate analysis of variance on the isometric log-transformed time use variables without assuming equal variance across subgroups. NA category includes missing data and/or dont want to response/dont know/etc',threeparttable = TRUE)
