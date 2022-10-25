@@ -1,0 +1,319 @@
+---
+title: "24HAC_MS"
+output: pdf_document
+---
+
+```{r,setup,include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,include = FALSE)
+```
+
+```{r}
+library(tableone)
+library(dplyr)
+library(kableExtra)
+library(ggtern)
+library(robCompositions)
+```
+
+```{r}
+dat <- read.csv('example_dat.csv')
+glimpse(dat)
+# data contains 6 variables
+# sex
+# sit, stand, step, sleep, % of time spent on each behavior per day
+# outcome is continuous
+dat$sex <- factor(dat$sex, c('Male','Female'))
+# convert percentages to hours
+dat$sit_hrs <- dat$sit * 24
+dat$stand_hrs <- dat$stand * 24
+dat$step_hrs <- dat$step * 24
+dat$sleep_hrs <- dat$sleep * 24
+```
+
+## Descriptive table
+
+```{r}
+tbl1 <- CreateTableOne(data = dat, vars = c('sex', 'sit_hrs','stand_hrs','step_hrs','sleep_hrs')) %>% print(.)
+kable(tbl1)
+```
+
+## ISM approach
+
+Consider an example where each minute of the 24-hour day is classified into one of four activities: sleeping, sitting, standing, and stepping. The ISM is formulated by including the total activity and all but one of the activity variables – the activity you will explore displacing – in the model.  For example, with a continuous health outcome an ISM that leaves out the time stepping can be formulated, as below:
+
+$$E(Y) = \beta_0 + \beta_1Sit + \beta_2 Stand + \beta_3 Step + \beta_4 Ttoal + \gamma Sex$$
+
+where $E(Y)$ abbreviates the conditional mean of the health outcome given the time allocation variables (Sit, Stand, Sleep, Total measured on the same unit, e.g., hours in a 24-hour day), and the covariate sex. When *Total* is exactly a constant 24 hours/day for every subject, like in this hypothetical example, only one of the intercept or the Total terms can be included in the model.
+
+Four linear ISMs adjusted for sex were fit to the data, with each of the four activities omitted from the model one at a time.
+
+
+```{r}
+m_iso1 <- lm(outcome ~ sit_hrs + stand_hrs + sleep_hrs + sex, data = dat)
+m_iso1_tab <- ShowRegTable(m_iso1,exp = FALSE,digits = 2)
+m_iso1_tab <- rbind(m_iso1_tab[2:3,],c('Dropped','Dropped'),m_iso1_tab[4,])
+
+m_iso2 <- lm(outcome ~ sit_hrs + step_hrs + sleep_hrs + sex, data = dat)
+m_iso2_tab <- ShowRegTable(m_iso2,exp = FALSE,digits = 2)
+m_iso2_tab <- rbind(m_iso2_tab[2,],c('Dropped','Dropped'),m_iso2_tab[3:4,])
+
+m_iso3 <- lm(outcome ~  stand_hrs + step_hrs + sleep_hrs + sex, data = dat)
+m_iso3_tab <- ShowRegTable(m_iso3,exp = FALSE,digits = 2)
+m_iso3_tab <- rbind(c('Dropped','Dropped'),m_iso3_tab[2:4,])
+
+m_iso4 <- lm(outcome ~ sit_hrs + stand_hrs + step_hrs + sex, data = dat)
+m_iso4_tab <- ShowRegTable(m_iso4,exp = FALSE,digits = 3)
+m_iso4_tab <- rbind(m_iso4_tab[2:4,],c('Dropped','Dropped'))
+```
+
+```{r,include=TRUE}
+iso_tab <- cbind(m_iso3_tab,m_iso2_tab,m_iso1_tab, m_iso4_tab)
+rownames(iso_tab) <- c('Sit (hours)','Stand (hours)','Step (hours)','Sleep (hours)')
+colnames(iso_tab) <- rep(c('Beta (95\\% C.I.)','p-value'),4)
+kable(iso_tab, format = 'latex',caption = 'Isotemporal Substitution of Activities, per 10-Minute/Day Increase',escape = FALSE,booktabs = TRUE) %>% 
+  add_header_above(c(' ' = 1,'Model with sit dropped' = 2, 'Model with stand dropped' = 2, 'Model with step dropped'=2, 'Model with sleep dropped' = 2),bold = TRUE) %>%
+  kable_styling(latex_options = c('hold_position','scale_down','striped')) %>%
+  footnote(general = 'AIC = 2134, BIC = 2168')
+#write.csv(t(iso_tab),'MS tables figures/ISM_table.csv')
+```
+
+Nonlinear ISM
+
+A more flexible ISM could be fit with each activity term modeled by a spline function, while keeping the total activity as a linear term. The flexible ISM still enjoys the interpretation of substitution effects but avoids making the linear assumption. The optimal trade-off between smoothness and goodness of fit can be determined by either performing cross validation or minimizing the generalized cross validation (GCV) criteria. The significance of the association for each behavior in the nonlinear ISM model can be tested via a Wald like test [Wood SN 2006]. The nonlinear ISM analysis can be done in R with package “mgcv”.
+
+```{r}
+library(mgcv)
+
+m_iso_nl <- gam(outcome ~ s(sit_hrs,bs = 'bs',k = 5) + s(stand_hrs,bs = 'bs',k = 5) + s(sleep_hrs,bs = 'bs', k = 5) + sex, data = dat)
+
+summary(m_iso_nl)
+plot(m_iso_nl)
+```
+
+## CoDA
+
+Visualizations and compositional descriptive statistics of 24HAC can be helpful, before fitting any models. The Figure below displays 24HAC compositions of sit, stand, step, and sleep for our ACT cohort through so-called ternary diagrams, a common tool to visualize composition with 3 parts. Since the 24HAC of interest here consists of four activity behaviors, we plotted four ternary diagrams (Figure 1 A-D), with each graph representing a sub-composition of three activity behaviors.  From Figure 1, we can see how sub-compositions are distributed and possibly associated with the outcome.
+
+### Simplex plot
+
+```{r, fig.height= 14, fig.width=16}
+g1 <- ggtern(data = dat, aes(x = sit, y = stand, z = step,value = outcome)) + 
+  geom_point(alpha = 1, aes(color = outcome)) +
+  geom_point(data = dat[200,],color = 'black', size = 1.5) +
+  geom_crosshair_tern(data = dat[200,], lty = 2, size = 1) +
+  annotate(geom  = 'text',
+                x     = 0.65,
+                y     = 1 - 0.65,
+                z     = 0,
+                vjust = c(-0.5),
+                hjust = c(0.35),
+                angle = c(-0),
+                label = paste("Sit=65%")) +
+  annotate(geom  = 'text',
+           x     = 0,
+           y     = 0.26,
+           z     = 1-0.26,
+           vjust = c(1.25),
+           hjust = c(-0.2),
+           angle = c(0),
+           label = paste("Stand=26%")) +
+  annotate(geom  = 'text',
+           x     = 1-0.08, 
+           y     = 0,
+           z     = 0.08,
+           vjust = c(3),
+           hjust = c(0.7),
+           label = paste("Step=8%")) + 
+  scale_colour_gradient2(midpoint=0,low="dodgerblue3",mid="lightgrey",high="darkorange")+
+  theme_rgbw(base_size = 19) + 
+  theme_nomask() +
+  theme(legend.position = 'left',
+        axis.title = element_text(size = 13))+
+  labs(title = '(A)',Tarrow = "% Stand",Larrow = "% Sit",Rarrow = "% Step")
+g2 <- ggtern(data = dat, aes(x = sit, y = stand, z = sleep,value = outcome)) + 
+  geom_point(alpha = 1,aes(color = outcome)) +
+  scale_colour_gradient2(midpoint=0,low="dodgerblue3",mid="lightgrey",high="darkorange")+
+  theme_rgbw(base_size = 19)+
+  labs(title = '(B)',Tarrow = "% Stand",Larrow = "% Sit",Rarrow = "% Sleep") + 
+  theme(legend.position = 'none',
+        axis.title = element_text(size = 13))
+
+g3 <- ggtern(data = dat, aes(x = sit, y = sleep, z = step,value = outcome)) + 
+  geom_point(alpha = 1,aes(color = outcome)) +
+  scale_colour_gradient2(midpoint=0,low="dodgerblue3",mid="lightgrey",high="darkorange")+
+  theme_rgbw(base_size = 19)+
+  labs(title = '(C)',Tarrow = "% Sleep",Larrow = "% Sit",Rarrow = "% Step")+
+  theme(legend.position = 'none',
+        axis.title = element_text(size = 13))
+
+g4 <- ggtern(data = dat, aes(x = sleep, y = stand, z = step,value = outcome)) + 
+  geom_point(alpha = 1,aes(color = outcome)) +
+  scale_colour_gradient2(midpoint=0,low="dodgerblue3",mid="lightgrey",high="darkorange")+
+  theme_rgbw(base_size = 19)+
+  labs(title = '(D)',Tarrow = "% Stand",Larrow = "% Sleep",Rarrow = "% Step") + 
+  theme(legend.position = 'none',
+        axis.title = element_text(size = 13))
+
+grid.arrange(g1,g2,g3,g4, ncol = 2,layout_matrix = matrix(c(1,1,1,2,3,4),nrow = 3))
+```
+
+
+### Table 2. Comparisons of compositional means
+
+```{r, include=TRUE}
+coda_mean <- function(x) {
+  gm <- apply(x,2,function(x) exp(mean(log(x))))
+  return(gm/sum(gm))
+}
+
+comp_subgroup_mean <- function(data, group, coda_var, includeNA = FALSE){
+  
+  data.org <- data
+  data <- data[complete.cases(data[,group]),]
+  N <- ifelse(includeNA, nrow(data.org), nrow(data))
+  lvl <- levels(data[, group])
+  d <- length(lvl)
+  tmp.l <- vector(mode = 'list', length = d)
+  for (i in 1:d) {
+    ind <- data[,group] == lvl[i]
+    n <- sum(ind)
+    perc <- round(n/N*100,1)
+    n.perc <- paste(n, '(', perc, '\\%)')
+    tmp.mean <- coda_mean(data[ind, coda_var])
+    tmp.text <- paste((tmp.mean*24) %>% round(.,2), '(', (tmp.mean*100) %>% round(.,1),'\\%)')
+    tmp.l[[i]] <- c(lvl[i],n.perc,tmp.text,' ')
+  }
+  
+  ina <- as.numeric(data[, group])
+  k <- max(ina)
+  trans.data <- pivotCoord(data[,coda_var]) %>% as.matrix()
+  
+  if (k == 2) {
+    tmp.test <- Compositional::james(trans.data[ina == 1,], trans.data[ina == 2,], R = 1)$info
+  }
+  
+  if (k > 2) {
+    tmp.test <- Compositional::maovjames(trans.data, ina)
+  }
+  
+  tmp.tbl <- rbind(c(group,rep(' ', 5), ifelse(tmp.test['p-value'] < 0.001, '<0.001', round(tmp.test['p-value'],3))),
+                   tmp.l %>% Reduce(rbind,.))
+  
+  if (includeNA) {
+     n.na <- sum(is.na(data.org[,group]))
+     tmp.tbl <- rbind(tmp.tbl, c('NA',paste(n.na,'(',round(n.na/N*100,1),'\\%)'),rep(' ',5)))
+  }
+ 
+  return(tmp.tbl)
+}
+tab_sex <- comp_subgroup_mean(dat,'sex', c('sit','stand','step','sleep'))
+
+
+kable(tbl_sex,row.names = FALSE,format = 'latex',col.names = c('Stratification','N (\\%)','Sit','Stand','Step','Sleep','P-value'),booktabs = TRUE, caption = 'Compositional mean in subgroups',escape = FALSE) %>% 
+    add_indent((1:nrow(tbl2))[!(tbl2[,1] %in% c('Gender','Age','Race/Ethnicity','sPPF','Half mile','Sleep duration/day','Sleep quality','CASI categorical'))]) %>% 
+    #column_spec(1, width = "23em") %>% 
+    kable_styling(latex_options = c('scale_down','HOLD_position','striped')) %>%
+    footnote(general = 'p-value from multivariate analysis of variance on the isometric log-transformed time use variables without assuming equal variance across subgroups. NA category includes missing data and/or dont want to response/dont know/etc',threeparttable = TRUE)
+#write.csv(tbl2,'R code/Spring 2022/MS tables figures/table2.csv')
+```
+
+
+```{r,include=TRUE}
+partitionOrder <- c("sit","stand","step","sleep")    # Indicate order to split off components
+CODA.data1     <- dat[,partitionOrder] 
+ilr1           <- pivotCoord(CODA.data1,1)
+ilr2           <- pivotCoord(CODA.data1,2)
+ilr3           <- pivotCoord(CODA.data1,3)
+ilr4           <- pivotCoord(CODA.data1,4)
+
+regdat1    <- data.frame(ilr1, y = dat$outcome, dat$sex)    # Remove original compositional variables
+regdat2    <- data.frame(ilr2, y = dat$outcome, dat$sex)    # Remove original compositional variables
+regdat3    <- data.frame(ilr3, y = dat$outcome, dat$sex)    # Remove original compositional variables
+regdat4    <- data.frame(ilr4, y = dat$outcome, dat$sex)    # Remove original compositional variables
+
+m1 <- lm(y ~ ., data = regdat1)
+m2 <- lm(y ~ ., data = regdat2)
+m3 <- lm(y ~ ., data = regdat3)
+m4 <- lm(y ~ ., data = regdat4)
+
+tbl_m <- rbind(ShowRegTable(m1,exp = FALSE,printToggle = FALSE)[2,],
+               ShowRegTable(m2,exp = FALSE,printToggle = FALSE)[2,],
+               ShowRegTable(m3,exp = FALSE,printToggle = FALSE)[2,],
+               ShowRegTable(m4,exp = FALSE,printToggle = FALSE)[2,])
+rownames(tbl_m) <- c('Sit vs Remaining','Stand vs Remaining',
+                     'Step vs Remaining', 'Sleep vs Remaining')
+colnames(tbl_m) <- c('Estimate (95\\% C.I.)','P-value')
+
+kable(tbl_m, format = 'latex',caption = 'Regression of pivot coordinates against CASI score. Analysis controlled for gender. Remaining = remaining behaviors',escape = FALSE,booktabs = TRUE) %>% 
+  kable_styling(latex_options = c('hold_position')) %>%
+  footnote(general = 'AIC = 2138, BIC = 2168')
+tbl_m
+#write.csv(tbl_m,'R code/Spring 2022/MS tables figures/table_coda_m.csv')
+```
+
+The plot below shows the effects of increasing time in one activity while proportionally decreasing time in other activities.
+
+
+```{r, include=FALSE}
+library(deltacomp)
+
+pred_df <- 
+    predict_delta_comps(
+        dataf = dat,
+        y = "outcome",
+        comps = c("sit", "stand", "step", "sleep"),
+        covars = c('sex'),
+        # careful deltas greater than 25 min in magnitude induce negative compositions
+        # predict_delta_comps() will warn you about this :-)
+        deltas =  seq(-40, 40, by = 5) / (24 * 60), 
+        comparisons = "prop-realloc", # or try "one-v-one"
+        alpha = 0.05
+    )
+```
+
+```{r, include=TRUE}
+#jpeg('R code/Spring 2022/MS tables figures/Figure1.jpeg',height = 3600,width = 3600,res = 600)
+plot_delta_comp(
+    pred_df, # provide the returned object from predict_delta_comps()
+    # x-axis can be converted from propotion of composition to meaningful units
+    comp_total = 24 * 60, # minutes available in the composition
+    units_lab = "min" # just a label for plotting
+)
+#dev.off()
+
+tmp <- plot_delta_comp(
+    pred_df, # provide the returned object from predict_delta_comps()
+    # x-axis can be converted from propotion of composition to meaningful units
+    comp_total = 24 * 60, # minutes available in the composition
+    units_lab = "min" # just a label for plotting
+)
+
+tmp$data
+
+```
+
+Using the models above, we can also estimate the effect of time-reallocation between pairs of behaviors, e.g. reallocate time only between step and sit. See the plot below.
+
+```{r}
+pred_df <- 
+    predict_delta_comps(
+        dataf = dat,
+        y = "outcome",
+        comps = c("sit", "stand", "step", "sleep"),
+        covars = c('sex'),
+        # careful deltas greater than 25 min in magnitude induce negative compositions
+        # predict_delta_comps() will warn you about this :-)
+        deltas =  seq(-40, 40, by = 5) / (24 * 60),
+        comparisons = "one-v-one", # or try "one-v-one"
+        alpha = 0.05
+    )
+
+#jpeg('R code/Spring 2022/MS tables figures/Figure2.jpeg',height = 3600,width = 3600,res = 600)
+plot_delta_comp(
+    pred_df, # provide the returned object from predict_delta_comps()
+    # x-axis can be converted from propotion of composition to meaningful units
+    comp_total = 24 * 60, # minutes available in the composition
+    units_lab = "min" # just a label for plotting
+)
+#dev.off()
+```
