@@ -2,7 +2,7 @@
 
 ## Background
 
-The 24-hour activity cycle (24HAC) is a new paradigm for studying activity behaviors in relation to health outcomes. This approach inherently captures the interrelatedness of the daily time spent in physical activity (PA), sedentary behavior (SB), and sleep, and allows for the study of increasing one activity in exchange for decreasing another and the associated estimated effects on health outcomes. The 24HAC is a multivariate exposure and requires specialized methods of analysis. We simulated some fake data and illustrated two approaches, namely isotemporal substitution model (ISM) and compositional data analysis (CoDA). Latent profile analysis (LPA) is another approach for modeling outcome associations with the 24HAC exposure, and discussed and compared with ISM and CoDA in our paper. However, its full analysis requires specialized software Mplus (https://www.statmodel.com/) or LatentGold (https://www.statisticalinnovations.com/latent-gold-6-0/), and hence is not illustrated here.
+The 24-hour activity cycle (24HAC) is a new paradigm for studying activity behaviors in relation to health outcomes. This approach inherently captures the interrelatedness of the daily time spent in physical activity (PA), sedentary behavior (SB), and sleep, and allows for the study of increasing one activity in exchange for decreasing another and the associated estimated effects on health outcomes. The 24HAC is a multivariate exposure and requires specialized methods of analysis. We simulated some fake data and illustrated two approaches, namely isotemporal substitution model (ISM) and compositional data analysis (CoDA). Latent profile analysis (LPA) is another approach for summarizeing 24HAC data and modeling outcome associations with the 24HAC exposure, and discussed and compared with ISM and CoDA in our paper. However, its full analysis requires specialized software Mplus (https://www.statmodel.com/) or LatentGold (https://www.statisticalinnovations.com/latent-gold-6-0/), and hence is not illustrated here.
 
 The hypothetical data contains a continuous outcome variable, 24HAC formed by four activity behaviors (sit, stand, step, and sleep) and a covariate sex. N = 1000. The primary research question of interest is the effect of time reallocation e.g. reallocating one hour from sit to step on the outcome.
 
@@ -27,14 +27,6 @@ In our illustration, we visualized the 24HAC compositions in ternary diagrams by
 ### LPA approach
 
 Unlike ISM and CoDA, LPA is a more exploratory method used to identify distinct latent subgroups with respect to activity profiles based on observed 24HAC data. This analysis can be done in R using the package `tidyLPA` (https://cran.r-project.org/web/packages/tidyLPA/vignettes/Introduction_to_tidyLPA.html). Another objective of LPA is to analyze the potential correlates of latent profiles and the associations of the profiles with outcomes. However, this analysis requires specialized regression methods that account for class assignment uncertainty, which can be performed in Mplus and LatentGold. Both are commercial software. To the best of our knowledge, it has not been implemented in any R package. Hence, we only illustrated how to use LPA to identify latent classes based on observed 24HAC data.
-
-
-
-
-
-
-`
-
 
 
 
