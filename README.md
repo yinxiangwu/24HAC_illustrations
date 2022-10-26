@@ -8,8 +8,6 @@ The hypothetical data contains a continuous outcome variable, 24HAC formed by fo
 
 ### ISM approach
 
-## ISM approach
-
 The ISM is formulated by including the total activity and all but one of the activity variables – the activity you will explore displacing – in the model.  For example, with a continuous health outcome an ISM that leaves out the time stepping can be formulated, as below:
 
 $$E(Y) = \beta_0 + \beta_1Sit + \beta_2 Stand + \beta_3 Step + \beta_4 Ttoal + \gamma Sex$$
