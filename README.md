@@ -42,7 +42,7 @@ In our illustration, we visualized the 24HAC compositions in ternary diagrams by
 
 Unlike ISM and CoDA, LPA is a more exploratory method used to identify distinct latent subgroups with respect to activity profiles based on observed 24HAC data. This analysis can be done in R using the package `tidyLPA` (https://cran.r-project.org/web/packages/tidyLPA/vignettes/Introduction_to_tidyLPA.html). Another objective of LPA is to analyze the potential correlates of latent profiles and the associations of the profiles with outcomes. However, this analysis requires specialized regression methods that account for class assignment uncertainty, which can be performed in Mplus and LatentGold. Both are commercial software. To the best of our knowledge, it has not been implemented in any R package.
 
-
+Find the LatentGold syntax in our paper supp.
 
 
 
