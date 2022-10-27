@@ -1,12 +1,24 @@
 # Illustrations of ISM, CoDA, and LPA applied to 24HAC data
 
+reference our paper
+
 ## Background
 
-The 24-hour activity cycle (24HAC) is a new paradigm for studying activity behaviors in relation to health outcomes. This approach inherently captures the interrelatedness of the daily time spent in physical activity (PA), sedentary behavior (SB), and sleep, and allows for the study of increasing one activity in exchange for decreasing another and the associated estimated effects on health outcomes. The 24HAC is a multivariate exposure and requires specialized methods of analysis. We simulated some fake data and illustrated two approaches, namely isotemporal substitution model (ISM) and compositional data analysis (CoDA). Latent profile analysis (LPA) is another approach for summarizeing 24HAC data and modeling outcome associations with the 24HAC exposure, and discussed and compared with ISM and CoDA in our paper. However, its full analysis requires specialized software Mplus (https://www.statmodel.com/) or LatentGold (https://www.statisticalinnovations.com/latent-gold-6-0/), and hence is not illustrated here.
+The 24-hour activity cycle (24HAC) is a new paradigm for studying activity behaviors in relation to health outcomes. This approach inherently captures the interrelatedness of the daily time spent in physical activity (PA), sedentary behavior (SB), and sleep, and allows for the study of increasing one activity in exchange for decreasing another and the associated estimated effects on health outcomes. The 24HAC is a multivariate exposure and requires specialized methods of analysis. We simulated some fake data and illustrated two approaches, namely isotemporal substitution model (ISM) and compositional data analysis (CoDA). Latent profile analysis (LPA) is another approach for summarizeing 24HAC data and modeling outcome associations with the 24HAC exposure, and discussed and compared with ISM and CoDA in our paper [reference]. However, its full analysis requires specialized software Mplus (https://www.statmodel.com/) or LatentGold (https://www.statisticalinnovations.com/latent-gold-6-0/), and hence is not illustrated here.
 
 The hypothetical data contains a continuous outcome variable, 24HAC formed by four activity behaviors (sit, stand, step, and sleep) and a covariate sex. N = 1000. The primary research question of interest is the effect of time reallocation e.g. reallocating one hour from sit to step on the outcome.
 
+reference the data file. Outcome generated using a true model.
+
+Repeat the analysis in our paper using the fake data.
+
+Describe the rmd file and pdf files.
+
 ### ISM approach
+
+Draw better connections between analysis done here and the analysis in our paper
+
+Fit a series of four models. Explain better what the Rmd file does.
 
 The ISM is formulated by including the total activity and all but one of the activity variables – the activity you will explore displacing – in the model.  For example, with a continuous health outcome an ISM that leaves out the time stepping can be formulated, as below:
 
@@ -21,6 +33,8 @@ The linear model assumption can be relaxed by fitting a more flexible ISM with e
 ### CoDA approach
 
 CoDA is another widely used analytic approach to handle 24HAC data and its associations with health outcomes. Unlike ISM still treating each activity behavior as an univariate variable, the fundamental unit of observation is the multivariate vector of the proportions or percentages of the 24 hours that are spent in each type of activity. By using the operations defined by Aitchison on the space of compositions [Aitchison (1994)](https://www.jstor.org/stable/4355794), this provides a natural way to compare health outcomes between any two compositions, including substitution of one behavior for another.
+
+Similar to Figure XX in the paper
 
 In our illustration, we visualized the 24HAC compositions in ternary diagrams by using the R package `ggtern`[Hamilton NE, Ferry M (2018)](https://www.jstatsoft.org/article/view/v087c03). We then provided two different applications of the CoDA analysis: one which considers the effect of increasing time in a particular activity, while proportionally decreasing the other activities; and one which considers a composition that captures a pairwise time reallocation. The results of both can be obtained and visualized by using the package `codaredistlm` (CoDA redistribution linear model) available on github here: [github.com/tystan/codaredistlm](https://github.com/tystan/codaredistlm).
 
