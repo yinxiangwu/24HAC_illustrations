@@ -1,6 +1,6 @@
 # Illustrations of ISM, CoDA, and LPA applied to 24HAC data
 
-reference our paper
+reference our paper [arXiv submission pending, Doi link]
 
 ## Background
 
