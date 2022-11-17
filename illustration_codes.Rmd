@@ -1,5 +1,5 @@
 ---
-title: "Illustrations of ISM and CoDA for 24HAC data analysis"
+title: "Illustrations of ISM, CoDA, and LPA for 24HAC data analysis"
 author: Yinxiang Wu
 output: pdf_document
 ---
@@ -17,6 +17,14 @@ library(mgcv)
 library(kableExtra)
 library(gmodels)
 ```
+
+
+```{=latex}
+% Trigger ToC creation in LaTeX
+\tableofcontents
+```
+
+\clearpage
 
 ```{r}
 dat <- read.csv('example_dat.csv')
@@ -59,7 +67,7 @@ kable(tbl1, format = 'latex', align = 'c', vline = '',
   kable_styling(latex_options = "hold_position")
 ```
 
-## ISM approach
+## Isometric Substitution Model (ISM)
 
 ### Linear ISM
 
@@ -118,7 +126,7 @@ plot(m_iso_nl)
 ```
 \pagebreak
 
-## CoDA
+## CoDA (Compositional data analysis)
 
 Unlike ISM treating each activity behavior as an univariate variable on the original time scale, the fundamental unit of observation is the multivariate vector of the proportions or percentages of the 24 hours that are spent in each type of activity.
 
@@ -397,7 +405,7 @@ plot_delta_comp(
 )
 ```
 
-## LPA
+## Latent Profile Analysis (LPA)
 
 LPA is a more exploratory method used to identify distinct latent subgroups with respect to activity profiles based on observed 24HAC data. This analysis can be done in R using the package *tidyLPA* (https://cran.r-project.org/web/packages/tidyLPA/vignettes/Introduction_to_tidyLPA.html). Another objective of LPA is to analyze the potential correlates of latent profiles and the associations of the profiles with outcomes. However, this analysis requires specialized regression methods that account for class assignment uncertainty, which can be performed in either *Mplus* or *LatentGold*. Both are commercial software. To the best of our knowledge, those methods have not been implemented in any R package. To perform similar analysis as in our paper, please find the LatentGold syntax in the supplemental materials (A2.2) of our paper.
 
