@@ -33,7 +33,20 @@ dat$step_hrs <- dat$step * 24
 dat$sleep_hrs <- dat$sleep * 24
 ```
 
+In this document, we illustrated and repeated the analysis we performed in our paper *Analysis of the 24-Hour Activity Cycle: An illustration examining the association with cognitive function in the Adult Changes in Thought (ACT) Study [arXiv submission pending]*, based on the hypothetical data.
+
+The dataset contains a continuous outcome variable $y$, a categorical variable $sex$, and compositional variables for $sit$, $stand$, $step$, and $sleep$, each of which ranges from 0 to 1, and they sum to 1. The compositional variables were simulated from the distribution of the real data that were used in the paper. The continuous outcome was generated based on the model
+
+$$y = -0.04z_1 -0.06z_2 + 0.68z_3 + 0.5sex + \epsilon$$
+where $z_1$, $z_2$, $z_3$ are a set of isometric log-ratio (ilr) coordinates of the compositional variables (see below), and $\epsilon \sim N(0, 0.25)$. For more details of the ilr-coordinates, please refer to the CoDA section below and see the section 3.2 in the paper.
+
+$$z_1 = \sqrt{\frac{3}{4}}ln(\frac{Sit}{(Stand\times Step\times Sleep)^{\frac{1}{3}}})$$
+$$z2 = \sqrt{\frac{2}{3}}ln(\frac{Stand}{(Step\times Sleep)^{\frac{1}{2}}})$$
+$$z_3 = \sqrt{\frac{1}{2}}ln\frac{Step}{Sleep}$$
+
 ## Descriptive table of the data
+
+The table 1 presents descriptive statistics of the sample.
 
 ```{r,include=TRUE}
 tbl1 <- CreateTableOne(data = dat, vars = c('sex', 'sit_hrs','stand_hrs','step_hrs','sleep_hrs')) %>% print(., printToggle = FALSE)
@@ -54,9 +67,9 @@ Consider an example where each minute of the 24-hour day is classified into one 
 
 $$E(Y) = \beta_0 + \beta_1Sit + \beta_2 Stand + \beta_3 Step + \beta_4 Ttoal + \gamma Sex$$
 
-where $E(Y)$ abbreviates the conditional mean of the health outcome given the time allocation variables (Sit, Stand, Sleep, Total measured on the same unit, e.g., hours in a 24-hour day), and the covariate sex. When *Total* is exactly a constant 24 hours/day for every subject, like in this hypothetical example, only one of the intercept or the Total terms can be included in the model.
+where $E(Y)$ abbreviates the conditional mean of the health outcome given the time allocation variables (Sit, Stand, Sleep, Total measured on the same unit, e.g., hours in a 24-hour day), and the covariate sex. When *Total* is exactly a constant 24 hours/day for every subject, like in this hypothetical example, only one of the intercept or the Total terms can be included in the model. For more details, you can refer to the section 3.1 in the paper.
 
-Four linear ISMs adjusted for sex were fit to the data, with each of the four activities omitted from the model one at a time.
+Four linear ISMs adjusted for sex were fit to the data, with each of the four activities omitted from the model one at a time. Table 2 summarizes the coefficient estimates. This is a table similar to the Table 2 in the paper.
 
 
 ```{r}
@@ -81,7 +94,7 @@ m_iso4_tab <- rbind(m_iso4_tab[2:4,],c('Dropped','Dropped'))
 iso_tab <- cbind(m_iso3_tab,m_iso2_tab,m_iso1_tab, m_iso4_tab)
 rownames(iso_tab) <- c('Sit (hours)','Stand (hours)','Step (hours)','Sleep (hours)')
 colnames(iso_tab) <- rep(c('Beta (95\\% C.I.)','p-value'),4)
-kable(iso_tab, format = 'latex',caption = 'Isotemporal Substitution of Activities, per 10-Minute/Day Increase',escape = FALSE,booktabs = TRUE) %>% 
+kable(iso_tab, format = 'latex',caption = 'Isotemporal Substitution of Activities, per 1 hr/Day Increase',escape = FALSE,booktabs = TRUE) %>% 
   add_header_above(c(' ' = 1,'Model with sit dropped' = 2, 'Model with stand dropped' = 2, 'Model with step dropped'=2, 'Model with sleep dropped' = 2),bold = TRUE) %>%
   kable_styling(latex_options = c('hold_position','scale_down','striped'))
 #write.csv(t(iso_tab),'MS tables figures/ISM_table.csv')
@@ -107,7 +120,9 @@ plot(m_iso_nl)
 
 ## CoDA
 
-Visualizations and compositional descriptive statistics of 24HAC can be helpful, before fitting any models. The Figure below displays 24HAC compositions of sit, stand, step, and sleep for the fake data using ternary diagrams, a common tool to visualize composition with 3 parts. Since the 24HAC of interest here consists of four activity behaviors, we plotted four ternary diagrams (A-D below), with each graph representing a sub-composition of three activity behaviors.  From the figure below, we can see how sub-compositions are distributed and possibly associated with the outcome.
+Unlike ISM treating each activity behavior as an univariate variable on the original time scale, the fundamental unit of observation is the multivariate vector of the proportions or percentages of the 24 hours that are spent in each type of activity.
+
+Visualizations and compositional descriptive statistics of 24HAC can be helpful, before fitting any models. The Figure below (similar to the Figure 1 in the paper) displays 24HAC compositions of sit, stand, step, and sleep for the fake data using ternary diagrams, a common tool to visualize composition with 3 parts. Since the 24HAC of interest here consists of four activity behaviors, we plotted four ternary diagrams (A-D below), with each graph representing a sub-composition of three activity behaviors.  From the figure below, we can see how sub-compositions are distributed and possibly associated with the outcome.
 
 ### Simplex plot
 
@@ -175,19 +190,21 @@ grid.arrange(g1,g2,g3,g4, ncol = 2,layout_matrix = matrix(c(1,1,1,2,3,4),nrow = 
 
 ### Comparisons of compositional means by groups
 
-The compositional mean is a common descriptive statistics to describe central tendency of compositional data. It is defined as the vector of geometric means of each behavior, rescaled to sum to 1. Since the components of a composition are inter-correlated, it is not sensible to calculate the variance of a single component. In stead, a variation matrix for the log-ratio is used to describe the interdependence between every pair of behaviors i.e. each element of that matrix is the variance of log-ratio between two components. An off-diagonal value close to 0 means the two parts are highly proportional in the observed data. Both compositional mean and variation matrix can be easily coded in R.
+The compositional mean is a common descriptive statistics to describe central tendency of compositional data. It is defined as the vector of geometric means of each behavior, rescaled to sum to 1. Please refer to the Supplemental material A1 for more details about this definition.  Since the components of a composition are inter-correlated, it is not sensible to calculate the variance of a single component. In stead, a variation matrix for the log-ratio is used to describe the interdependence between every pair of behaviors i.e. each element of that matrix is the variance of log-ratio between two components. An off-diagonal value close to 0 means the two parts are highly proportional in the observed data. Both compositional mean and variation matrix can be easily coded in R.
 
 For inferential analysis such as hypothesis testing and regressions, CoDA relies on the isometric log-ratio (ilr) transformation, which transforms each D-part composition to a unique D-1 vector on a new coordinate system where each new coordinate is a log-ratio which falls along the real line. For example, a possible transformation is as follows:
 
-$$z_1 = \sqrt{\frac{3}{4}}ln(\frac{Sit}{(Stand\times Step\times Sleep)^{\frac{1}{3}}})$$
-$$z2 = \sqrt{\frac{2}{3}}ln(\frac{Stand}{(Step\times Sleep)^{\frac{1}{2}}})$$
-$$z_3 = \sqrt{\frac{1}{2}}ln\frac{Step}{Sleep}$$
+\begin{align*}
+z_1 & = \sqrt{\frac{3}{4}}ln(\frac{Sit}{(Stand\times Step\times Sleep)^{\frac{1}{3}}}) \\
+z2 & = \sqrt{\frac{2}{3}}ln(\frac{Stand}{(Step\times Sleep)^{\frac{1}{2}}}) \\
+z_3 & = \sqrt{\frac{1}{2}}ln\frac{Step}{Sleep} \\
+\end{align*}
 
 In R, we used the function *pivotCoord()* from the package *robCompositions* for this transformation.
 
-With transformed data ($z_1$, $z_2$, and $z_3$) and normality assumptions, we performed James multivariate analysis of variance with unequal variances to test the difference in the compositional mean between sex. The James test was available in the R pacage *Compositional*.
+With transformed data ($z_1$, $z_2$, and $z_3$) and under normality assumptions, we performed James multivariate analysis of variance with unequal variances to test the difference in the compositional mean between sex. The James test was available in the R pacage *Compositional*.
 
-The table below presents the compositional means in the overall sample and the groups defined by sex. P-value = 0.348 indicating insufficient evidence to reject the null hypothesis that the compositional means are equal between males and females.
+The table below (similar to the Table S2 in the paper) presents the compositional means in the overall sample and the groups defined by sex. P-value = 0.348 indicating insufficient evidence to reject the null hypothesis that the compositional means are equal between males and females.
 
 ```{r, include=TRUE}
 coda_mean <- function(x) {
@@ -250,7 +267,7 @@ kable(tbl_comp,row.names = FALSE,format = 'latex',col.names = c(' ','N (\\%)','S
 
 Next, we applied CoDA to estimate a type of time reallocation i.e. increasing time in one activity while simultaneously proportionally decreasing time in the other activities. To achieve this, it is convenient to create four sets of ilr-coordinates with each behavior in turn being singled out as the numerator in the pivot coordinate $z_1$. Four linear regression models were fit with the continuous outcome, and with the resulting ilr-coordinates ($z_1$, $z_2$, $z_3$) as predictors. Each regression model is adjusted for sex.
 
-Table below summarized regression coefficient estimates $\hat \beta_1$ for the four CoDA pivot coordinates, each of which quantifies the effect of increasing time in one behavior by a factor while simultaneously decreasing time in the other behaviors by another factor. To make meaningful interpretation of those $\hat \beta_1$ estimates, we need to consider a referent composition in order to inform what magnitude difference in $z_1$ is a meaningful difference. Suppose the compositional mean calculated over the entire sample is chosen as the referent composition, and we are interested in the effect of increasing step by a factor of $1+r$. Then, all the other components should simultaneously be decreased by another factor $1-s$ to maintain $z_2$ and $z_3$ constant. Some derivations show that the difference in the mean outcome for such a time reallocation equals to $\hat \beta_1 \sqrt{\frac{3}{4}}log(\frac{1+r}{1-r})$. We created a R function *comp_contrast* that can output the difference between any two compositions in terms of ilr-coordinates (using *pivotCoord* function from the package *robCompositions*). More specifically, with a fitted CoDA regression model with $z_1$, $z_2$, $z_3$ (from pivotCoord) as predictors and a given referent composition say $c_1$, to estimate the effect of a specific time reallocation, we only need to know the composition $c_2$ after such time reallocation, and enter $c_1$ and $c_2$ into the *comp_contrast* function, we can obtain the difference between the two compositions in terms of $z_1$, $z_2$, and $z_3$. The estimated effect of such time reallocation is a linear combination of $\hat \beta_1$, $\hat \beta_2$, and $\hat \beta_3$ with coefficients equal to that difference. Note that CoDA regression results should be the same regardless of the form of ilr-transformations i.e. which set of ilr-coordinates is used. 
+Table below (similar to the Table 3 in the paper) summarized regression coefficient estimates $\hat \beta_1$ for the four CoDA pivot coordinates, each of which quantifies the effect of increasing time in one behavior by a factor while simultaneously decreasing time in the other behaviors by another factor. To make meaningful interpretation of those $\hat \beta_1$ estimates, we need to consider a referent composition in order to inform what magnitude difference in $z_1$ is a meaningful difference. Suppose the compositional mean calculated over the entire sample is chosen as the referent composition, and we are interested in the effect of increasing step by a factor of $1+r$. Then, all the other components should simultaneously be decreased by another factor $1-s$ to maintain $z_2$ and $z_3$ constant. Some derivations show that the difference in the mean outcome for such a time reallocation equals to $\hat \beta_1 \sqrt{\frac{3}{4}}log(\frac{1+r}{1-r})$. We created a R function *comp_contrast* that can output the difference between any two compositions in terms of ilr-coordinates (using *pivotCoord* function from the package *robCompositions*). More specifically, with a fitted CoDA regression model with $z_1$, $z_2$, $z_3$ (from pivotCoord) as predictors and a given referent composition say $c_1$, to estimate the effect of a specific time reallocation, we only need to know the composition $c_2$ after such time reallocation, and enter $c_1$ and $c_2$ into the *comp_contrast* function, we can obtain the difference between the two compositions in terms of $z_1$, $z_2$, and $z_3$. The estimated effect of such time reallocation is then a linear combination of that difference with linear coefficients as $\hat \beta_1$, $\hat \beta_2$, and $\hat \beta_3$. Note that CoDA regression results should be the same regardless of the form of ilr-transformations i.e. which set of ilr-coordinates is used. 
 
 ```{r,include=TRUE}
 partitionOrder <- c("sit","stand","step","sleep")    # Indicate order to split off components
@@ -282,9 +299,9 @@ kable(tbl_m, format = 'latex',caption = 'Regression of pivot coordinates against
   kable_styling(latex_options = c('hold_position'))
 ```
 
-Based on the results in Table, we can see increasing time in step while proportionally decreasing time in the other activities is associated with higher mean outcome. In contrast, increasing time in sleep while proportionally decreasing time in the other activities is associated with lower mean outcome. More specifically, increasing 30 minsin step while proportionally decreasing time in the other behaviors is associated with 0.19 [0.17, 0.22] increase in the outcome. Increasing 30 mins in sleep while proportionally decreasing time in the other behaviors is associated with a decrease in mean outcome of 0.04 [0.03, 0.05].
+Based on the results in Table 4, we can see increasing time in step while proportionally decreasing time in the other activities is associated with higher mean outcome. In contrast, increasing time in sleep while proportionally decreasing time in the other activities is associated with lower mean outcome. More specifically, increasing 30 minsin step while proportionally decreasing time in the other behaviors is associated with 0.19 [0.17, 0.22] increase in the outcome. Increasing 30 mins in sleep while proportionally decreasing time in the other behaviors is associated with a decrease in mean outcome of 0.04 [0.03, 0.05].
 
-The results can be visualized by using the package *codaredistlm* available on Github: [github.com/tystan/codaredistlm](https://github.com/tystan/codaredistlm). Please see the blow plots created by using the function *pred_df* and *plot_delta_comp*.
+The results can be visualized by using the package *codaredistlm* available on Github: [github.com/tystan/codaredistlm](https://github.com/tystan/codaredistlm). Please see the blow plots created by using the function *pred_df* and *plot_delta_comp*. The figure below is similar to Figure 2 in the paper.
 
 
 ```{r, include=FALSE}
@@ -327,7 +344,7 @@ estimable(m4,c(0,0.077,0,0,0))
 ```
 
 ```{r, include=FALSE}
-library(deltacomp)
+library(codaredistlm)
 pred_df <- 
     predict_delta_comps(
         dataf = dat,
@@ -353,7 +370,7 @@ plot_delta_comp(
 
 \pagebreak
 
-We can use the same functions to estimate and visualize the effect of time-reallocation between any pair of behaviors, e.g. reallocate time only between step and sit. See the plot below.
+We can use the same functions to estimate and visualize the effect of time-reallocation between any pair of behaviors, e.g. reallocate time only between step and sit. See the plot below (similar to Figure 3 in the paper).
 
 ```{r, include = FALSE}
 pred_df <- 
@@ -379,3 +396,47 @@ plot_delta_comp(
     units_lab = "min" # just a label for plotting
 )
 ```
+
+## LPA
+
+LPA is a more exploratory method used to identify distinct latent subgroups with respect to activity profiles based on observed 24HAC data. This analysis can be done in R using the package *tidyLPA* (https://cran.r-project.org/web/packages/tidyLPA/vignettes/Introduction_to_tidyLPA.html). Another objective of LPA is to analyze the potential correlates of latent profiles and the associations of the profiles with outcomes. However, this analysis requires specialized regression methods that account for class assignment uncertainty, which can be performed in either *Mplus* or *LatentGold*. Both are commercial software. To the best of our knowledge, those methods have not been implemented in any R package. To perform similar analysis as in our paper, please find the LatentGold syntax in the supplemental materials (A2.2) of our paper.
+
+Here, we only performed LPA to identify latent subgroups based on the compositional variables $sit$, $stand$, $step$, and $sleep$, so-called profile indicators.
+
+LPA assumes that the profile indicators follow a finite mixture of multivariate normal distributions with each latent subgroup having its own mean and possibly distinct variance-covariance structure. The key part in running LPA is to determine the best number of classes i.e. latent groups. Usually, a series of models with different number of latent classes are fit. The best model is selected based on the mix of several criteria e.g. fit statistics, statistical comparisons between models, smallest number of subjects assigned to a class, interpretability of the classes, etc.
+
+A key feature of 24HAC data is the co-dependence between activity behaviors, which prevents us from applying LPA to all 24HAC variables because it will lead to a degenerate (rank-deficient) covariance matrix. Two possible solutions to consider are (1) apply LPA to the same ilr-transformed variables used in CoDA (see CoDA section) or (2) drop one activity behavior variable from the LPA. Here, we chose to drop sleep from LPA. See our paper for more discussions.
+
+We fit a series of LPA models with the number of classes ranging from 2 to 6 and allowed both variances and covariances of profile indicator variables to differ across latent classes (most flexible models). The Table 5 below shows the fit statistics for fitted models. AIC, BIC, CAIC, SABIC are all statistics balancing the model fit and complexity of the model. The difference between them is how they weigh the two objectives. In our case, they respectively favor 4-class model, 3-class model, 3-class model, 3-class model. Based on the bootstrap likelihood ratio test (BLRT) comparing the model with k and k-1 classes, we have strong evidence that the 3-class model is better than the 2-class model, but the 4-class model is not better than the 3-class model. Thus, 3-class model is used as the final model. For most cases, the decision process may be more complicated than here, and may need to be based on a mix of criteria and sometimes subjective.
+
+```{r}
+library(tidyLPA)
+suppressMessages(mod <- estimate_profiles(df = dat[,2:4],n_profiles = 2:6, models = 6))
+tbl_lpa <- sapply(mod,function(x) {x$fit}) %>% t(.)
+tbl_lpa[,3:17] <- round(tbl_lpa[,3:17],2)
+tbl_lpa_to_present <- tbl_lpa[,c(2,3,4,6,7,10,11,15,18,12)]
+rownames(tbl_lpa_to_present) <- c('2-class model','3-class model','4-class model','5-class model','6-class model')
+```
+
+```{r, include = TRUE}
+kable(tbl_lpa_to_present,format = 'latex',caption = 'Fit statistics for latent profile models with 2-6 profiles',booktabs = TRUE,digits = 2) %>% 
+  kable_styling(latex_options = c('hold_position','scale_down'))
+```
+
+Once we obtain the final model, we can get the probability of each subject belonging to different latent classes (a.k.a posterior probability of class membership). The figure below shows the distribution of four activities across the three classes after we assign every subject to the class with the highest probability (a.k.a modal assignment).
+
+```{r, include = TRUE}
+lpa_final <- estimate_profiles(df = dat[,2:4],n_profiles = 3, models = 6)
+dat$Class <- recode(get_data(lpa_final)$Class,'1' = '3', '2' = '2', '3' =  '1') # re-order according to mean sit time
+dat_to_plot <- reshape2::melt(dat[,c('Class','sit_hrs','stand_hrs','step_hrs','sleep_hrs')],id.vars = 'Class')
+levels(dat_to_plot$variable) <- c('Sit','Stand','Step','Sleep')
+ggplot(data = dat_to_plot, aes(x = variable, y = value, fill = Class)) +
+  geom_boxplot() +
+  scale_y_continuous(breaks = seq(0,18,by = 1),
+                     sec.axis = sec_axis(~./24,name = "% of a day", breaks = seq(0,1,by = 0.1),labels =scales::percent)) + 
+  labs(x = ' ', y = 'Hours/day') + 
+  theme_light() +
+  theme(legend.title = element_blank())
+```
+
+In most applications, after obtaining a model for latent classes, we are also interested how the latent classes are associated different covariates or health outcomes. Most studies in the literature simply assign every individual to the class with the highest posterior probability of class membership and treat that class assignments as known information to do further inferential analysis. However, this could lead to bias effects and underestimated SEs. In our paper, we discussed this issue and current approaches to dealing with that. Those approaches are currently only available in LatentGold and Mplus, but not in R, and hence not presented here.
