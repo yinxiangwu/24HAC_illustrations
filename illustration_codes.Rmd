@@ -196,8 +196,8 @@ For inferential analysis such as hypothesis testing and regressions, CoDA relies
 
 \begin{align*}
 z_1 & = \sqrt{\frac{3}{4}}ln(\frac{Sit}{(Stand\times Step\times Sleep)^{\frac{1}{3}}}) \\
-z2 & = \sqrt{\frac{2}{3}}ln(\frac{Stand}{(Step\times Sleep)^{\frac{1}{2}}}) \\
-z_3 & = \sqrt{\frac{1}{2}}ln\frac{Step}{Sleep} \\
+z_2 & = \sqrt{\frac{2}{3}}ln(\frac{Stand}{(Step\times Sleep)^{\frac{1}{2}}}) \\
+z_3 & = \sqrt{\frac{1}{2}}ln\frac{Step}{Sleep}
 \end{align*}
 
 In R, we used the function *pivotCoord()* from the package *robCompositions* for this transformation.
