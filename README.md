@@ -10,7 +10,7 @@ The 24-hour activity cycle (24HAC) is a new paradigm for studying activity behav
 
 The hypothetical data (example_dat.csv) contains a continuous outcome variable, 24HAC formed by four activity behaviors (sit, stand, step, and sleep) and a covariate sex. N = 1000. The primary research question of interest is the effect of time reallocation e.g. reallocating one hour from sit to step on the outcome.
 
-The Rmarkdown file (illustration_codes.Rmd) contains codes to repeat the analysis we performed in our paper but using the hypotheical data, and texts illustrating each step. The illustration_codes.pdf is knitted using that Rmarkdown file. It presents illustrations and nicely formatted results.
+The Rmarkdown file (illustration_codes.Rmd) contains codes to repeat the analysis we performed in our paper but using the hypotheical data. The illustration_codes.pdf is knitted using that Rmarkdown file. It provides step-by-step illustrations and nicely formatted results.
 
 ## ISM approach
 
